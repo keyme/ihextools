@@ -110,6 +110,24 @@ class iHexAddrGroup(object):
             ba.extend(x.get_binary())
         return ba
 
+    @property
+    def base_offset(self):
+        b_offset = self.addr_row.bytelist[0] << 8 | self.addr_row.bytelist[1]
+        return b_offset << 16
+
+    def get_u8_list(self):
+        """
+        returns a list of tuples in the form (offset, dataoctet)
+        """
+        retlist = []
+        for row in self.data_rows:
+            row_offset = row.offset
+            for byte in row.bytelist:
+                retlist.append( (self.base_offset | row_offset, byte) )
+                row_offset += 1
+
+        return retlist
+
 
 class iHex(object):
     def __init__(self):
@@ -130,6 +148,39 @@ class iHex(object):
 
     def __str__(self):
         return ''.join([str(x) for x in self._addr_groups])
+
+
+    def get_u32_list(self):
+        """
+        Returns a list of tuples in the form (offset, dataword)
+        """
+        bytelist = []
+        wordlist = []
+
+        #First, get a list of all of the bytes and their individual
+        #offsets in this ihex file
+        for ag in self._addr_groups:
+            bytelist.extend(ag.get_u8_list())
+
+        #Now, divide this list of bytes into chunks of 4 bytes each
+        wordchunks = chunks(bytelist, 4)
+
+        #Take each of these chunks, and create u32's out of the bytes,
+        #preserving the offset of the first byte as the word's offset
+        for chunk in wordchunks:
+            #Grab the word offset, this will be the first tuple index
+            #of the first byte in the chunk
+            word_offset = chunk[0][0]
+            word = 0x00000000
+
+            #now assemble the word out of the corresponding bytes,
+            #keeping in mind that we might be short at the end
+            for i in range(len(chunk)):
+                word |= chunk[i][1] << (8 * (3 - i))
+
+            wordlist.append( (word_offset, word) )
+
+        return wordlist
 
     def get_binary(self):
         ba = bytearray()
