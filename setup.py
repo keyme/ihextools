@@ -9,19 +9,19 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name = "ihex",
-    version = "0.0.1",
+    name = "ihextools",
+    version = "1.0.0",
     author = "Jeff Ciesielski",
     author_email = "jeffciesielski@gmail.com",
     description = ("Simple Intel hex library"),
     license = "MIT",
     keywords = "ihex",
     url = "https://github.com/Jeff-Ciesielski/ihexpy",
-    packages=['ihex'],
-    package_dir={'ihex': 'src/'},
+    packages=['ihextools'],
+    package_dir={'ihextools': 'src/'},
     long_description=read('README.md'),
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Topic :: Utilities",
         "License :: OSI Approved :: MIT License",
     ],
