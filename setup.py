@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "ihextools",
-    version = "1.0.0",
+    version = "1.1.0",
     author = "Jeff Ciesielski",
     author_email = "jeffciesielski@gmail.com",
     description = ("Simple Intel hex library"),
