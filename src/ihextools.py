@@ -188,11 +188,17 @@ class iHex(object):
             ba.extend(x.get_binary())
         return ba
 
-
     def _process_binary(self, bytestring, base_offset):
         #Create variables to hold the current offset and base offset
-        offset = 0x10000
+        offset = (base_offset & 0xffff)
         b_offset = base_offset >> 16
+
+        addr_row = iHexRow().from_bytes(bytelist=[b_offset >> 8, b_offset & 0xff],
+                                        offset=0,
+                                        record_type = ROWTYPE_EXT_LIN_ADDR)
+        addr_group = iHexAddrGroup(addr_row)
+        self._addr_groups.append(addr_group)
+        b_offset += 1
 
         #While there is data left to process
         while len(bytestring):
