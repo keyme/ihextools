@@ -18,7 +18,7 @@ setup(
     keywords = "ihex",
     url = "https://github.com/Jeff-Ciesielski/ihexpy",
     packages=['ihextools'],
-    package_dir={'ihextools': 'src/'},
+    package_dir={'ihextools': 'src'},
     long_description=read('README.md'),
     classifiers=[
         "Development Status :: 4 - Beta",
