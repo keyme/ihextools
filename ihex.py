@@ -12,10 +12,12 @@ ROWTYPE_START_SEG_ADDR = 0x03
 ROWTYPE_EXT_LIN_ADDR = 0x04
 ROWTYPE_START_LIN_ADDR = 0x05
 
+DEFAULT_ADDR_GROUP = ":020000000000FE"
+
 def chunks(l, n):
     """ Yield successive n-sized chunks from l.
     """
-    for i in xrange(0, len(l), n):
+    for i in range(0, len(l), n):
         yield l[i:i+n]
 
 class iHexRow(object):
@@ -38,7 +40,7 @@ class iHexRow(object):
 
     def _parse(self):
         if not self._data[0] == ':':
-            raise Exception("Invalid row start")
+            raise Exception("Invalid row start: {}".format(self._data[0]))
 
         self.bytecount = int(''.join(self._data[1:3]), 16)
         self.offset = int(''.join(self._data[3:7]), 16)
@@ -73,7 +75,7 @@ class iHexRow(object):
         self.checksum = self._calc_checksum()
 
         self._validate()
-        
+
         return self
 
     def __str__(self):
@@ -88,7 +90,7 @@ class iHexRow(object):
 
     def get_binary(self):
         return bytearray(self.bytelist)
-        
+
 
 class iHexAddrGroup(object):
     def __init__(self, addr_row):
@@ -134,7 +136,7 @@ class iHex(object):
         self._addr_groups = []
 
     def load_ihex(self, path):
-        lines = open(path, 'rb').readlines()
+        lines = open(path, 'r').readlines()
 
         #Walk through each line
         for l in lines:
@@ -144,6 +146,13 @@ class iHex(object):
                 ag = iHexAddrGroup(row)
                 self._addr_groups.append(ag)
             else:
+                # For things like AVR which only have a 16 bit address
+                # space and therefore don't need to place their code
+                # at a deep offset, we need to create a default
+                # address group starting at 0
+                if not self._addr_groups:
+                    ag = iHexAddrGroup(iHexRow().from_str(DEFAULT_ADDR_GROUP))
+                    self._addr_groups.append(ag)
                 self._addr_groups[-1].add_data_row(row)
 
     def __str__(self):
@@ -219,8 +228,12 @@ class iHex(object):
                 b_offset += 0x01
                 continue
 
-            #Grab our working data chunk and adjust the remaining data accordingly
-            data = [ord(x) for x in bytestring[:16]]
+            #Grab our working data chunk and adjust the remaining data
+            #accordingly
+            if type(bytestring[0]) == int:
+                data = [x for x in bytestring[:16]]
+            else:
+                data = [ord(x) for x in bytestring[:16]]
             bytestring = bytestring[16:]
 
             #Create our iHexRow data
@@ -235,17 +248,17 @@ class iHex(object):
 
             #onto the next row
             continue
-                        
+
         #Finally, append a row signifying the end of the file
         end = iHexRow().from_bytes(bytelist=[],
                                    offset=0,
                                    record_type = ROWTYPE_EOF)
         self._addr_groups[-1].add_data_row(end)
-        
-        
+
+
     def load_bytes(self, bytestring, base_offset):
         self._process_binary(bytestring, base_offset)
-        
+
 
     def load_bin(self, path, base_offset):
         bindata = open(path, 'rb').read()
@@ -257,16 +270,5 @@ class iHex(object):
             fil.write(self.get_binary())
 
     def save_ihex(self, path):
-        with open(path, 'wb') as fil:
+        with open(path, 'w') as fil:
             fil.write(str(self))
-
-if __name__ == '__main__':
-    ih = iHex()
-    ih.load_ihex('main.ihex')
-    ih.save_ihex('main2.ihex')
-    ih.save_bin('main2.bin')
-    ih2 = iHex()
-    ih2.load_bin('main.bin', 0x08020000)
-    ih2.save_ihex('main3.ihex')
-    ih2.save_bin('main3.bin')
-
