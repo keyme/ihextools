@@ -10,13 +10,13 @@ def read(fname):
 
 setup(
     name = "ihextools",
-    version = "1.1.0",
+    version = "1.2.0",
     author = "Jeff Ciesielski",
-    author_email = "jeffciesielski@gmail.com",
+    author_email = "jeff.ciesielski@key.me",
     description = ("Simple Intel hex library"),
     license = "MIT",
     keywords = "ihex",
-    url = "https://github.com/Jeff-Ciesielski/ihexpy",
+    url = "https://github.com/keyme/ihextools",
     packages=['ihextools'],
     package_dir={'ihextools': '.'},
     long_description=read('README.md'),
